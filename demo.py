@@ -3,7 +3,7 @@ from tornado.options import options,define
 from tornado import httpserver
 from tornado.web import RequestHandler,Application
 from tornado.ioloop import IOLoop
-from sqlalchemy import Column,String,Integer,Float,LargeBinary,DateTime,create_engine
+from sqlalchemy import Column,String,Integer,Float,LargeBinary,DateTime,Text,create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import os,asyncio,datetime,base64,uuid
@@ -60,6 +60,7 @@ class Goodsinfo(Base):
     goods_oldprice=Column(Float(10),nullable=False)
     goods_unit=Column(String(10),nullable=False)
     goods_place=Column(String(20),nullable=False)
+    goods_discription=Column(Text,nullable=False)
     create_time = Column(DateTime, default=datetime.datetime.now)
 
     # 显示对象的时候打印名字
@@ -72,7 +73,7 @@ class Goodsinfo(Base):
 # imgencode=base64.b64encode(img.read())
 #
 # shaguo=Goodsinfo(goods_name='沙果',goods_price=69,goods_oldprice=80,goods_unit='袋',goods_place='柴达木市',goods_image=imgencode)
-#
+#   session.query(Userinfo).filter_by(goods_name='牛肉干').update({'goods_discription':''})
 # session.add(shaguo)
 #
 # session.commit()
@@ -93,6 +94,10 @@ def Getgoods():
     goodslist=[]
     goodsimage=[]
     goods=session.query(Goodsinfo).all()
+    testdiscription=session.query(Goodsinfo).filter_by(goods_name='牛肉干').all()
+    # 测试商品描述用
+    # for i in testdiscription:
+    #     print(i.goods_discription)
     for good in goods:
         goodslist.append(good)
         goodsimage.append(good.goods_image)
@@ -120,6 +125,26 @@ class IndexHandler(RequestHandler):
 
 
 
+
+
+#商品详情处理
+class GoodsDetialHandler(RequestHandler):
+
+    #获得一个知识点：name可以接  goods_detial/ 后面的参数！！！！！！！哇！！！！！！
+    def get(self,name):
+        self.write(name)
+        name_new=int(name)
+        print(type(name_new))
+        print(name_new)
+
+
+
+
+
+
+
+
+'''备用类'''
 #获取当前用户类
 # class BaseHandler(RequestHandler):
 #
@@ -241,11 +266,13 @@ if __name__ == '__main__':
         # "login_url": "/login"
     }
 
+    #给应用配置路由
     app=Application([
         ('/',IndexHandler),
         ('/login',LoginHandler),
         ('/register',RegisterHandler),
         ('/personal_info',PersonalHandler),
+        (r'/goods_detial/(.*)',GoodsDetialHandler),
         # ('/wrong_page',WrongHandler)
 
     ],static_path=os.path.join(os.path.dirname(__file__),'static'),**settings)
